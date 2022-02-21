@@ -1,0 +1,10 @@
+#Current Project
+.vs/
+obj/
+builds/
+libs/
+
+#Visual Studio
+**.sln
+**.vcxproj
+**.vcxproj.user
