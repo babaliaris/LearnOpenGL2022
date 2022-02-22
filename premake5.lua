@@ -31,28 +31,15 @@ function FileExists(file)
  end
 
 
- -- Ask A Question.
- function AskQuestion(question)
-    local answer
-    repeat
-        io.write(question.."(y/n): ")
-        io.flush()
-        answer=io.read()
-    until answer=="y" or answer=="n"
-
-    return answer
-end
-
-
 
 --Check if Program Exists.
 function CheckIfProgramExists(program_name)
 
+    local handle = io.popen(program_name.." 2>&1") -- Try to run the command and redirect the output to stderr.
+    local output = handle:read("*all") -- Read stderr output.
+
     --If Windows.
     if (CheckOS() == "Windows") then
-
-        local handle = io.popen(program_name.." 2>&1") -- Try to run the command and redirect the output to stderr.
-        local output = handle:read("*all") -- Read stderr output.
 
         -- If "is not recognized as an internal or external command" exists, then the program could not be run.
         if ( string.match(output, "is not recognized as an internal or external command") ) then
@@ -61,8 +48,10 @@ function CheckIfProgramExists(program_name)
     
     --Linux.
     else
-        print("CheckIfProgramExists() NOT implemented for Linux.")
-        return false
+        -- If "command not found" exists, then the program could not be run.
+        if ( string.match(output, "command not found") ) then
+            return false
+        end
     end
 
     --Program found.
@@ -83,10 +72,15 @@ function Clean()
         --Print a message that we are cleaning stuff.
         print("=============================Cleaning=============================")
 
-        -- WINDOWS: Clean glfw.
-        if ( CheckOS() == "Windows" and DirExists("External\\glfw\\build")) then
-            os.execute("rmdir External\\glfw\\build /s /q")
-            os.execute("rmdir libs /s /q")
+        -- WINDOWS
+        if ( CheckOS() == "Windows" and DirExists("External\\glfw\\build") ) then
+            os.execute("rmdir External\\glfw\\build /s /q") --Clean GLFW build/
+            os.execute("rmdir libs /s /q") --Clean libs/
+        
+        --Linux
+        elseif ( CheckOS() == "Linux" and DirExists("External/glfw/build/") ) then
+            os.execute("rm -rf External/glfw/build/") --Clean GLFW build/
+            os.execute("rm -rf libs/") --Clean libs/
         end
 
         -- Exit after finish cleaning.
@@ -111,7 +105,10 @@ function CompileGLFW()
 
     -- If Linux and glfw has not been build yet.
     elseif ( CheckOS() == "Linux" and not DirExists("External/glfw/build") ) then
-        print("[Warning] GLFW build on LINUX hasn't been implemented yet...")
+        os.execute("cmake -S External/glfw -B External/glfw/build -D BUILD_SHARED_LIBS=OFF") --Cmake the project files.
+        os.execute("cd External/glfw/build && make") --Build.
+        os.execute("mkdir -p libs/debug/ && cp External/glfw/build/src/libglfw3.a libs/debug/") --copy the .a to libs/debug
+        os.execute("mkdir -p libs/release/ && cp External/glfw/build/src/libglfw3.a libs/release/")  --copy the .a to libs/release
 
     -- GLFW already compiled.
     else
@@ -130,6 +127,14 @@ end
 --Check if msbuild.exe can be run.
 if ( CheckOS() == "Windows" and not CheckIfProgramExists("msbuild") ) then
     print("msbuild.exe was not found. Make sure it is installed and set in the PATH environment variable.")
+    print("Aborting...")
+    os.exit()
+end
+
+
+--Check if make can be run.
+if ( CheckOS() == "Linux" and not CheckIfProgramExists("make") ) then
+    print("make was not found. Make sure it is installed and set in the PATH environment variable.")
     print("Aborting...")
     os.exit()
 end
@@ -197,9 +202,9 @@ workspace "LearnOpenGL"
             }
         
 
+
+
         -- ++++++++++++++++++++++++++++++++{Windows}++++++++++++++++++++++++++++++++ --
-
-
 
         -- Windows All Configurations.
         filter {}
@@ -231,5 +236,39 @@ workspace "LearnOpenGL"
                 }
         
         -- ++++++++++++++++++++++++++++++++{Windows}++++++++++++++++++++++++++++++++ --
+
+
+
+        -- +++++++++++++++++++++++++++++++++{Linux}+++++++++++++++++++++++++++++++++ --
+
+        -- Linux All Configurations.
+        filter {}
+        filter {"system:Linux"}
+            
+            defines "LEARN_OPENGL_LINUX"
+
+            links {
+                "glfw3"
+            }
+            
+            -- Linux Debug.
+            filter {"configurations:Debug"}
+                libdirs {
+                    "libs/debug"
+                }
+            
+            -- Linux PreRelease.
+            filter {"configurations:PreRelease"}
+                libdirs {
+                    "libs/release"
+                }
+
+            -- Linux Release.
+            filter {"configurations:Release"}
+                libdirs {
+                    "libs/release"
+                }
+        
+        -- +++++++++++++++++++++++++++++++++{Linux}+++++++++++++++++++++++++++++++++ --
 
     -- ============================================================{Project: LearnGL}============================================================ --

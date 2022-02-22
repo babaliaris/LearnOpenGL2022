@@ -9,3 +9,6 @@ libs/
 **.vcxproj
 **.vcxproj.user
 **.vcxproj.filters
+
+#Linux
+Makefile
