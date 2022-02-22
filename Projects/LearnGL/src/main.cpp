@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <stb_image/stb_image.h>
+#include <core/gl/glcall.h>
 
 int main(void)
 {
@@ -31,7 +32,7 @@ int main(void)
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
+        GLCall( glClear(GL_UNSIGNED_BYTE) );
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
