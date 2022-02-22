@@ -5,6 +5,8 @@
 #include <core/gl/glcall.h>
 #include <core/core.h>
 #include <core/logger.h>
+#include <core/gl/vbo.h>
+#include <core/gl/vao.h>
 #include <core/gl/shader.h>
 
 int main(void)
@@ -34,7 +36,31 @@ int main(void)
     //Initialize the logger.
     LearnOpenGL::Logger::Init();
 
-    LearnOpenGL::Shader *shader = new LearnOpenGL::Shader(LEARN_OPENGL_RELATIVE_PATH("src/resources/test_shader.glsl"));
+
+    float data[18] = {
+
+        //Positions
+        -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f
+    };
+
+    LearnOpenGL::Vao *vao = new LearnOpenGL::Vao();
+    LearnOpenGL::Vbo *vbo = new LearnOpenGL::Vbo(data, 18);
+
+    vao->Bind();
+    vbo->Bind();
+
+    vbo->PushLayout({ 3, sizeof(float) * 6, LearnOpenGL::LayoutTypeE::FLOAT });
+    vbo->PushLayout({ 3, sizeof(float) * 6, LearnOpenGL::LayoutTypeE::FLOAT });
+
+    vao->Ubind();
+    vbo->Unbind();
+
+
+    LearnOpenGL::Shader* shader = new LearnOpenGL::Shader(LEARN_OPENGL_RELATIVE_PATH("src/resources/test_shader.glsl"));
+
+
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -42,13 +68,20 @@ int main(void)
         /* Render here */
         GLCall( glClear(GL_COLOR_BUFFER_BIT) );
 
+        shader->Bind();
+        vao->Bind();
+        GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
+
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 
         /* Poll for and process events */
         glfwPollEvents();
     }
-    delete shader;
+
+    delete vao;
+    delete vbo;
+
     glfwTerminate();
     return 0;
 }
