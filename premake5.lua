@@ -150,6 +150,7 @@ workspace "LearnOpenGL"
         includedirs {
             "Projects/LearnGL/src/",
             "Projects/LearnGL/src/external/glad/include/",
+            "Projects/LearnGL/src/external/stb_image/include/",
             "External/glfw/include/"
         }
 
