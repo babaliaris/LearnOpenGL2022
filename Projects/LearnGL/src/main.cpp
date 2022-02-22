@@ -5,7 +5,7 @@
 #include <core/gl/glcall.h>
 #include <core/core.h>
 #include <core/logger.h>
-#include <core/shader.h>
+#include <core/gl/shader.h>
 
 int main(void)
 {
