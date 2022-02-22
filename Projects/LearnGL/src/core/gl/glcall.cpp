@@ -44,7 +44,7 @@ namespace LearnOpenGL
 	{
 		while ( GLenum error = glGetError() )
 		{
-			LEARN_OPENGL_ERROR(": [OpenGL Error: {} -> {}]\n\tIn File: {}\n\tAt Line: {}\n", error, GetOpenGLErrorMeaning(error), file, line);
+			Logger::GetLogger()->error(": [OpenGL Error: {} -> {}]\n\tIn File: {}\n\tAt Line: {}\n", error, GetOpenGLErrorMeaning(error), file, line);
 		}
 		
 	}

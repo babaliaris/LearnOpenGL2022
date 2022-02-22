@@ -12,4 +12,14 @@ namespace LearnOpenGL
 	{
 		m_logger->set_pattern("[%n:%l] %v%$");
 	}
+
+
+	std::string Logger::AddFileLine(const std::string& fmt, const char* file, unsigned int line)
+	{
+		std::stringstream stream;
+
+		stream << fmt << "\n\tIn File: " << file << "\n\tAt Line: " << line << std::endl << std::endl;
+
+		return stream.str();
+	}
 }
