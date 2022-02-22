@@ -1,11 +1,4 @@
--- msbuild GLFW.sln /p:Configuration=Release
 -- cmake -S path/to/glfw -B path/to/build -D BUILD_SHARED_LIBS=OFF
--- cmake -S path/to/glfw -B path/to/build -D USE_MSVC_RUNTIME_LIBRARY_DLL=OFF
-
--- NEVER CHANGE THESE!!! For windows I'm forced to hard code some paths to rmdir
-__LIBS_DIR__        = path.join("libs", "")
-__LIBS_GLFWDIR__    = path.join(__LIBS_DIR__, "glfw")
-
 
 
 -- ||||||||||||||||||||||||||||||Some Helpful Functions|||||||||||||||||||||||||||||| --
@@ -31,7 +24,7 @@ function FileExists(file)
     return ok, err
  end
  
- --- Check if a directory exists in this path
+ --- Check if a directory exists
  function DirExists(path)
     -- "/" works on both Unix and Windows
     return FileExists(path.."/")
@@ -50,6 +43,32 @@ function FileExists(file)
     return answer
 end
 
+
+
+--Check if Program Exists.
+function CheckIfProgramExists(program_name)
+
+    --If Windows.
+    if (CheckOS() == "Windows") then
+
+        local handle = io.popen(program_name.." 2>&1") -- Try to run the command and redirect the output to stderr.
+        local output = handle:read("*all") -- Read stderr output.
+
+        -- If "is not recognized as an internal or external command" exists, then the program could not be run.
+        if ( string.match(output, "is not recognized as an internal or external command") ) then
+            return false
+        end
+    
+    --Linux.
+    else
+        print("CheckIfProgramExists() NOT implemented for Linux.")
+        return false
+    end
+
+    --Program found.
+    return true
+end
+
  -- ||||||||||||||||||||||||||||||Some Helpful Functions|||||||||||||||||||||||||||||| --
 
 
@@ -65,8 +84,9 @@ function Clean()
         print("=============================Cleaning=============================")
 
         -- WINDOWS: Clean glfw.
-        if ( CheckOS() == "Windows" and DirExists(__LIBS_GLFWDIR__)) then
-            os.execute("rmdir libs\\glfw /s /q")
+        if ( CheckOS() == "Windows" and DirExists("External\\glfw\\build")) then
+            os.execute("rmdir External\\glfw\\build /s /q")
+            os.execute("rmdir libs /s /q")
         end
 
         -- Exit after finish cleaning.
@@ -81,37 +101,37 @@ end
 function CompileGLFW()
    
     -- If Windows and glfw has not been build yet.
-    if ( CheckOS() == "Windows" and not DirExists(__LIBS_GLFWDIR__) ) then
-        os.execute("cmake -S External/glfw -B libs/glfw -D USE_MSVC_RUNTIME_LIBRARY_DLL=OFF") --Cmake the project files.
-        os.execute("cd "..__LIBS_GLFWDIR__.." && msbuild GLFW.sln /p:Configuration=Debug") --Build Debug.
-        os.execute("cd "..__LIBS_GLFWDIR__.." && msbuild GLFW.sln /p:Configuration=Release") --Build Release.
+    if ( CheckOS() == "Windows" and not DirExists("External\\glfw\\build") ) then
+        os.execute("cmake -S External\\glfw -B External\\glfw\\build -D USE_MSVC_RUNTIME_LIBRARY_DLL=OFF") --Cmake the project files.
+        os.execute("cd External\\glfw\\build && msbuild GLFW.sln /p:Configuration=Debug") --Build Debug.
+        os.execute("cd External\\glfw\\build && msbuild GLFW.sln /p:Configuration=Release") --Build Release.
+        os.execute("xcopy External\\glfw\\build\\src\\Debug\\glfw3.lib libs\\debug\\") --Copy the debug glfw.lib to libs/debug
+        os.execute("xcopy External\\glfw\\build\\src\\Debug\\glfw3.pdb libs\\debug\\") --Copy the debug glfw.pdb to libs/debug
+        os.execute("xcopy External\\glfw\\build\\src\\Release\\glfw3.lib libs\\release\\") --Copy the release glfw.lib to libs/release
 
     -- If Linux and glfw has not been build yet.
-    elseif ( CheckOS() == "Linux" and not DirExists(__LIBS_GLFWDIR__) ) then
+    elseif ( CheckOS() == "Linux" and not DirExists("External/glfw/build") ) then
         print("[Warning] GLFW build on LINUX hasn't been implemented yet...")
 
     -- GLFW already compiled.
     else
-        print("[Warning] The directory: "..__LIBS_GLFWDIR__..", already exists. Run premake5 clean, if you want to rebuild glfw.")
+        print("[Warning] The directory: External/glfw/build, already exists. Run premake5 clean, if you want to rebuild glfw.")
     end
 end
 
 
+--Check if cmake can be run.
+if ( not CheckIfProgramExists("cmake") ) then
+    print("cmake was not found. Make sure it is installed and set in the PATH environment variable.")
+    print("Aborting...")
+    os.exit()
+end
 
--- Some Information To The User (DO NOT SHOW THIS IF CLEANING).
-if ( _ACTION ~= "clean" ) then
-print("Before we continue with project files generation (The following are needed in order to build and compile external dependencies):")
-print("Make sure that:")
-print("    1) All OS's  : Cmake is installed and set in the Environment Path Variable")
-print("    2) On Windows: msbuild.exe bin directory is set in the Environment Path Variable (usually the path is: C:\\Program Files\\Microsoft Visual Studio\\<year>\\Community\\Msbuild\\Current\\Bin)")
-print("    3) On Linux  : make and autotools are installed and set in the Environment Path Variable")
-print("If you are getting linking errors, probably some external libs failed to compile. See the output of this script to figure out why.")
-print("You can always run premake5 clean and then premake5 <action> to rebuild any depedencies and see the compilation output.")
-
-    -- Ask if the user wants to continue with the script's execution.
-    if ( AskQuestion("\nDo you want to continue with the project files generation?") == "n" ) then
-        os.exit()
-    end
+--Check if msbuild.exe can be run.
+if ( CheckOS() == "Windows" and not CheckIfProgramExists("msbuild") ) then
+    print("msbuild.exe was not found. Make sure it is installed and set in the PATH environment variable.")
+    print("Aborting...")
+    os.exit()
 end
 
 
@@ -195,19 +215,19 @@ workspace "LearnOpenGL"
             -- Windows Debug.
             filter {"configurations:Debug"}
                 libdirs {
-                    "libs/glfw/src/Debug"
+                    "libs/debug"
                 }
             
             -- Windows PreRelease.
             filter {"configurations:PreRelease"}
                 libdirs {
-                    "libs/glfw/src/Release"
+                    "libs/release"
                 }
 
             -- Windows Release.
             filter {"configurations:Release"}
                 libdirs {
-                    "libs/glfw/src/Release"
+                    "libs/release"
                 }
         
         -- ++++++++++++++++++++++++++++++++{Windows}++++++++++++++++++++++++++++++++ --
