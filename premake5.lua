@@ -148,7 +148,8 @@ workspace "LearnOpenGL"
         }
 
         includedirs {
-
+            "Projects/LearnGL/src/",
+            "External/glfw/include/"
         }
 
 
