@@ -165,6 +165,9 @@ workspace "LearnOpenGL"
         targetdir "builds/"
         objdir "obj/%{prj.name}_%{cfg.shortname}"
 
+        pchheader "pch.h"
+        pchsource "Projects/LearnGL/src/pch.cpp"
+
         files {
             "Projects/LearnGL/src/**.h",
             "Projects/LearnGL/src/**.hpp",
@@ -176,7 +179,8 @@ workspace "LearnOpenGL"
             "Projects/LearnGL/src/",
             "Projects/LearnGL/src/external/glad/include/",
             "Projects/LearnGL/src/external/stb_image/include/",
-            "External/glfw/include/"
+            "External/glfw/include/",
+            "External/spdlog/include/"
         }
 
 

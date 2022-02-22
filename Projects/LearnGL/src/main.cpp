@@ -1,8 +1,9 @@
+#include <pch.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <iostream>
 #include <stb_image/stb_image.h>
 #include <core/gl/glcall.h>
+#include <core/logger.h>
 
 int main(void)
 {
@@ -27,6 +28,9 @@ int main(void)
     {
         std::cout << "GLAD faild to initialize" << std::endl;
     }
+
+    //Initialize the logger.
+    LearnOpenGL::Logger::Init();
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
