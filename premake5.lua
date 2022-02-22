@@ -108,7 +108,7 @@ print("    3) On Linux  : make and autotools are installed and set in the Enviro
 print("If you are getting linking errors, probably some external libs failed to compile. See the output of this script to figure out why.")
 print("You can always run premake5 clean and then premake5 <action> to rebuild any depedencies and see the compilation output.")
 
-    -- Ask if the user wants to coninue with the script's execution.
+    -- Ask if the user wants to continue with the script's execution.
     if ( AskQuestion("\nDo you want to continue with the project files generation?") == "n" ) then
         os.exit()
     end
