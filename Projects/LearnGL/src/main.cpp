@@ -5,8 +5,8 @@
 #include <core/gl/glcall.h>
 #include <core/core.h>
 #include <core/logger.h>
-#include <core/gl/vbo.h>
-#include <core/gl/vao.h>
+#include <core/gl/vertexArray.h>
+#include <core/gl/vertexBuffer.h>
 #include <core/gl/shader.h>
 
 int main(void)
@@ -37,29 +37,23 @@ int main(void)
     LearnOpenGL::Logger::Init();
 
 
-    float data[18] = {
+    float data[] = {
 
-        //Positions
-        -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f
+        //Positions         Colors            Normals.
+        -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.5f, 0.0f,   0.0f, 0.0f, 1.0f, 0.5f, 0.5f
     };
 
-    LearnOpenGL::Vao *vao = new LearnOpenGL::Vao();
-    LearnOpenGL::Vbo *vbo = new LearnOpenGL::Vbo(data, 18);
 
-    vao->Bind();
-    vbo->Bind();
+    LearnOpenGL::VertexBuffer *vbo = new LearnOpenGL::VertexBuffer(data, sizeof(data));
+    vbo->pushLayout<float>(3, false, "Positions");
+    vbo->pushLayout<float>(3, false, "Colors");
+    vbo->pushLayout<float>(2, false, "Normals");
 
-    vbo->PushLayout({ 3, sizeof(float) * 6, LearnOpenGL::LayoutTypeE::FLOAT });
-    vbo->PushLayout({ 3, sizeof(float) * 6, LearnOpenGL::LayoutTypeE::FLOAT });
+    LearnOpenGL::VertexArray *vao = new LearnOpenGL::VertexArray(*vbo);
 
-    vao->Ubind();
-    vbo->Unbind();
-
-
-    LearnOpenGL::Shader* shader = new LearnOpenGL::Shader(LEARN_OPENGL_RELATIVE_PATH("src/resources/test_shader.glsl"));
-
+    LearnOpenGL::Shader* shader = new LearnOpenGL::Shader(LEARN_OPENGL_RELATIVE_PATH("src/resources/test_shader_positions_colors_normals.glsl"));
 
 
     /* Loop until the user closes the window */
@@ -69,8 +63,8 @@ int main(void)
         GLCall( glClear(GL_COLOR_BUFFER_BIT) );
 
         shader->Bind();
-        vao->Bind();
-        GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
+        vao->bind();
+        GLCall( glDrawArrays(GL_TRIANGLES, 0, vbo->getVertexCount() ) );
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -81,6 +75,7 @@ int main(void)
 
     delete vao;
     delete vbo;
+
 
     glfwTerminate();
     return 0;
