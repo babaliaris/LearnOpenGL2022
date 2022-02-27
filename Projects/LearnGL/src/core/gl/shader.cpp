@@ -273,4 +273,28 @@ namespace LearnOpenGL
 	{
 		GLCall(glUseProgram(0));
 	}
+
+
+
+	void Shader::setInt(const std::string& uniform_name, int value)
+	{
+		this->Bind();
+
+		//Get the location of the uniform.
+		GLCall(int location = glGetUniformLocation(m_id, uniform_name.c_str()));
+
+		//If the location is valid.
+		if (location != -1)
+		{
+			GLCall(glUniform1i(location, value));
+		}
+
+		//Invalid location.
+		else
+		{
+			LEARN_OPENGL_WARN("The uniform location of \"{}\", could not be found.", uniform_name.c_str());
+		}
+
+		this->Unbind();
+	}
 }

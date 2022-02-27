@@ -8,6 +8,7 @@
 #include <core/gl/vertexArray.h>
 #include <core/gl/vertexBuffer.h>
 #include <core/gl/shader.h>
+#include <core/gl/texture.h>
 
 int main(void)
 {
@@ -39,21 +40,27 @@ int main(void)
 
     float data[] = {
 
-        //Positions         Colors            Normals.
-        -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.5f, 0.0f,   0.0f, 0.0f, 1.0f, 0.5f, 0.5f
+        //Positions             Texture Coordinates.
+        -0.5f, 0.5f, 0.0f,      0.0f, 1.0f,
+        0.5f, -0.5f, 0.0f,      1.0f, 0.0f,
+        -0.5f, -0.5f, 0.0f,     0.0f, 0.0f,
+
+        -0.5f, 0.5f, 0.0f,      0.0f, 1.0f,
+        0.5f, 0.5f, 0.0f,       1.0f, 1.0f,
+        0.5f, -0.5f, 0.0f,      1.0f, 0.0f
     };
 
 
     LearnOpenGL::VertexBuffer *vbo = new LearnOpenGL::VertexBuffer(data, sizeof(data));
     vbo->pushLayout<float>(3, false, "Positions");
-    vbo->pushLayout<float>(3, false, "Colors");
-    vbo->pushLayout<float>(2, false, "Normals");
+    vbo->pushLayout<float>(2, false, "Texture Coordinates");
 
     LearnOpenGL::VertexArray *vao = new LearnOpenGL::VertexArray(*vbo);
 
-    LearnOpenGL::Shader* shader = new LearnOpenGL::Shader(LEARN_OPENGL_RELATIVE_PATH("src/resources/test_shader_positions_colors_normals.glsl"));
+    LearnOpenGL::Shader* shader = new LearnOpenGL::Shader(LEARN_OPENGL_RELATIVE_PATH("src/resources/shaders/test_textured_quad.glsl"));
+    shader->setInt("texSlot", 0);
+
+    LearnOpenGL::Texture* texture = new LearnOpenGL::Texture(LEARN_OPENGL_RELATIVE_PATH("src/resources/images/test.jpg"));
 
 
     /* Loop until the user closes the window */
@@ -62,6 +69,7 @@ int main(void)
         /* Render here */
         GLCall( glClear(GL_COLOR_BUFFER_BIT) );
 
+        texture->bind();
         shader->Bind();
         vao->bind();
         GLCall( glDrawArrays(GL_TRIANGLES, 0, vbo->getVertexCount() ) );
@@ -75,6 +83,8 @@ int main(void)
 
     delete vao;
     delete vbo;
+    delete shader;
+    delete texture;
 
 
     glfwTerminate();

@@ -14,6 +14,8 @@ namespace LearnOpenGL
 		void Bind();
 		void Unbind();
 
+		void setInt(const std::string& uniform_name, int value);
+
 		inline bool IsValid() { return m_isValid; }
 
 
