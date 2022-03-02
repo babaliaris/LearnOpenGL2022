@@ -180,7 +180,8 @@ workspace "LearnOpenGL"
             "Projects/LearnGL/src/external/glad/include/",
             "Projects/LearnGL/src/external/stb_image/include/",
             "External/glfw/include/",
-            "External/spdlog/include/"
+            "External/spdlog/include/",
+            "External/glm/"
         }
 
 
